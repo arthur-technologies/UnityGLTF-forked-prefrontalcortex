@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using GLTF.Schema;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEngine;
 
 namespace GLTF
 {
@@ -397,20 +399,28 @@ namespace GLTF
 					NumericArray resultArray = attributeAccessor.AccessorContent;
 					LoadBufferView(attributeAccessor, out NativeArray<byte> bufferViewCache);
 
-					switch (samplerSet.Key)
+					switch (attributeAccessor.AccessorId.Value.Type)
 					{
-						case "time":
+						case GLTFAccessorAttributeType.SCALAR:
 							attributeAccessor.AccessorId.Value.AsFloatArray(ref resultArray, bufferViewCache);
 							break;
-						case "translation":
-						case "scale":
+						case GLTFAccessorAttributeType.VEC2:
+							attributeAccessor.AccessorId.Value.AsFloat2Array(ref resultArray, bufferViewCache);
+							break;
+						case GLTFAccessorAttributeType.VEC3:
 							attributeAccessor.AccessorId.Value.AsFloat3Array(ref resultArray, bufferViewCache);
 							break;
-						case "rotation":
+						case GLTFAccessorAttributeType.VEC4:
 							attributeAccessor.AccessorId.Value.AsFloat4Array(ref resultArray, bufferViewCache);
 							break;
-						case "weights":
-							attributeAccessor.AccessorId.Value.AsFloatArray(ref resultArray, bufferViewCache);
+						case GLTFAccessorAttributeType.MAT2:
+							Debug.LogWarning("Unsupported MAT2 animation sampler type");
+							break;
+						case GLTFAccessorAttributeType.MAT3:
+							Debug.LogWarning("Unsupported MAT3 animation sampler type");
+							break;
+						case GLTFAccessorAttributeType.MAT4:
+							attributeAccessor.AccessorId.Value.AsMatrix4x4Array(ref resultArray, bufferViewCache);
 							break;
 					}
 
