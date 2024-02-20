@@ -94,6 +94,7 @@ namespace UnityGLTF
         [SerializeField] internal bool _importBlendShapeNames = true;
         [SerializeField] internal GLTFImporterNormals _importNormals = GLTFImporterNormals.Import;
         [SerializeField] internal GLTFImporterNormals _importTangents = GLTFImporterNormals.Import;
+        [SerializeField] internal CameraImportOption _importCamera = CameraImportOption.ImportAndCameraDisabled;
         [SerializeField] internal AnimationMethod _importAnimations = AnimationMethod.Mecanim;
         [SerializeField] internal bool _addAnimatorComponent = false;
         [SerializeField] internal bool _animationLoopTime = true;
@@ -863,7 +864,8 @@ namespace UnityGLTF
 			    SwapUVs = _swapUvs,
 			    ImportNormals = _importNormals,
 			    ImportTangents = _importTangents,
-			    ImportBlendShapeNames = _importBlendShapeNames
+			    ImportBlendShapeNames = _importBlendShapeNames,
+			    CameraImport = _importCamera
 		    };
 
 		    using (var stream = File.OpenRead(projectFilePath))

@@ -46,6 +46,7 @@ namespace UnityGLTF
 		public GLTFImporterNormals ImportNormals = GLTFImporterNormals.Import;
 		public GLTFImporterNormals ImportTangents = GLTFImporterNormals.Import;
 		public bool ImportBlendShapeNames = true;
+		public CameraImportOption CameraImport = CameraImportOption.ImportAndCameraDisabled;
 
 #if UNITY_EDITOR
 		public GLTFImportContext ImportContext = new GLTFImportContext(null, GLTFSettings.GetOrCreateSettings());
@@ -57,6 +58,13 @@ namespace UnityGLTF
 		public ILogger logger;
 	}
 
+	public enum CameraImportOption
+	{
+		None,
+		ImportAndActive,
+		ImportAndCameraDisabled
+	}
+	
 	public enum AnimationMethod
 	{
 		None,
@@ -934,22 +942,50 @@ namespace UnityGLTF
 
 			await ConstructLods(_gltfRoot, nodeObj, node, nodeIndex, cancellationToken);
 
-			/* TODO: implement camera (probably a flag to disable for VR as well)
-			if (camera != null)
-			{
-				GameObject cameraObj = camera.Value.Create();
-				cameraObj.transform.parent = nodeObj.transform;
-			}
-			*/
-
 			ConstructLights(nodeObj, node);
-
+			ConstructCamera(nodeObj, node);
+			
 			nodeObj.SetActive(true);
 
 			progressStatus.NodeLoaded++;
 			progress?.Report(progressStatus);
 		}
 
+		private void ConstructCamera(GameObject nodeObj, Node node)
+		{
+			if (node.Camera == null)
+				return;
+
+			if (_options.CameraImport == CameraImportOption.None)
+				return;
+			
+			var camera = node.Camera.Value;
+			Camera unityCamera = null;
+			if (camera.Orthographic != null)
+			{
+				unityCamera = nodeObj.AddComponent<Camera>();
+				unityCamera.orthographic = true;
+				unityCamera.orthographicSize = Mathf.Max((float)camera.Orthographic.XMag, (float)camera.Orthographic.YMag);
+				unityCamera.farClipPlane = (float)camera.Orthographic.ZFar;
+				unityCamera.nearClipPlane = (float)camera.Orthographic.ZNear;
+			}
+			else
+			if (camera.Perspective != null)
+			{
+				unityCamera = nodeObj.AddComponent<Camera>();
+				unityCamera.orthographic = false;
+				unityCamera.fieldOfView = (float)camera.Perspective.YFov * Mathf.Rad2Deg;
+				unityCamera.farClipPlane = (float)camera.Perspective.ZFar;
+				unityCamera.nearClipPlane = (float)camera.Perspective.ZNear;
+			}
+
+			if (!unityCamera)
+				return;
+			
+			if (_options.CameraImport == CameraImportOption.ImportAndCameraDisabled)
+				unityCamera.enabled = false;
+		}
+		
 		private async Task ConstructBufferData(Node node, CancellationToken cancellationToken)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
