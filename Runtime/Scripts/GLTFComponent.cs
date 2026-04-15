@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using UnityGLTF.Cache;
 using UnityGLTF.Loader;
 using UnityGLTF.Plugins;
 #if WINDOWS_UWP 
@@ -44,6 +45,8 @@ namespace UnityGLTF
 		public int Timeout = 8;
 		public GLTFSceneImporter.ColliderType Collider = GLTFSceneImporter.ColliderType.None;
 		public GameObject LastLoadedScene { get; private set; } = null;
+		public MeshCacheData[] MeshCache { get; private set; } = null;
+		public MaterialCacheData[] MaterialCache { get; private set; } = null;
 
 		[SerializeField]
 		private Shader shaderOverride = null;
@@ -151,6 +154,8 @@ namespace UnityGLTF
 				ApplyOverrideShader();
 
 				LastLoadedScene = sceneImporter.LastLoadedScene;
+				MeshCache = sceneImporter.MeshCache;
+				MaterialCache = sceneImporter.MaterialCache;
 
 				if (HideSceneObjDuringLoad && LastLoadedScene)
 				{
@@ -174,7 +179,7 @@ namespace UnityGLTF
 				}
 #endif
 			}
-			catch (Exception e)
+			catch (System.Exception)
 			{
 				if(importOptions.DataLoader != null)
 				{
